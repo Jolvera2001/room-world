@@ -52,9 +52,11 @@ fn player_movement(
     mut query: Query<(&mut Velocity, &Transform), (With<RigidBody>, With<Player>)>,
     camera_query: Query<&Transform, With<Camera>>,
     input: Res<ButtonInput<KeyCode>>,
-    time: Res<Time>,
 ) {
-    const ACCELERATION: f32 = 3.25;
+    const WALK: f32 = 3.25;
+    const RUN: f32 = 5.0;
+    const JUMP_VEL: f32 = 3.25;
+
     let Ok(cam) = camera_query.get_single() else { return };
 
     if let Ok((mut vel, trans)) = query.get_single_mut() {
@@ -75,10 +77,19 @@ fn player_movement(
         if input.pressed(KeyCode::KeyA) {
             direction -= right;
         }
+        if input.pressed(KeyCode::Space) {
+            vel.linvel.y = JUMP_VEL;
+        }
+
+        let speed = if input.pressed(KeyCode::ShiftLeft) {
+            RUN
+        } else {
+            WALK
+        };
 
         if direction != Vec3::ZERO {
             direction = direction.normalize();
-            let target_velocity = direction * ACCELERATION; // TODO: magic number, set constant later
+            let target_velocity = direction * speed;
 
             vel.linvel.x = target_velocity.x;
             vel.linvel.z = target_velocity.z;
