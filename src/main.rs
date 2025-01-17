@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::input::mouse::MouseMotion;
 use bevy_rapier3d::prelude::*;
 
 fn main() {
@@ -8,7 +9,7 @@ fn main() {
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup_scene)
         .add_systems(Startup, setup_objects)
-        .add_systems(Update, player_movement)
+        .add_systems(Update, (player_movement, camera_control))
         .run();
 }
 
@@ -20,10 +21,15 @@ fn setup_scene(mut commands: Commands) {
         .insert(RigidBody::Fixed);
 
     commands
-        .spawn(Camera3d {
-            ..Default::default()
-        })
-        .insert(Transform::from_xyz(-3.0, 3.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y));
+        .spawn((
+            CameraOrbit,
+            Transform::from_xyz(0.0, 1.0, 0.0)
+        ))
+        .with_children(|parent| {
+            parent.spawn(Camera3d {
+                ..default()
+            }).insert(Transform::from_xyz(-3.0, 3.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y));
+        });
 }
 
 fn setup_objects(mut commands: Commands) {
@@ -37,17 +43,42 @@ fn setup_objects(mut commands: Commands) {
             ),
             KinematicCharacterController::default(),
             KinematicCharacterControllerOutput::default(),
-            PlayerPhysics {
-                velocity: Vec3::ZERO,
-                acceleration: Vec3::ZERO
-            },
+            PlayerPhysics::default(),
             Transform::from_xyz(0.0, 1.0, 0.0)));
+}
+
+#[derive(Component)]
+struct CameraOrbit;
+
+fn camera_control(
+    mut mouse_motion: EventReader<MouseMotion>,
+    mut query: Query<&mut Transform, With<CameraOrbit>>,
+    time: Res<Time>, 
+) {
+    const ROTATION_SPEED: f32 = 0.3;
+
+    let mut rotation = Vec2::ZERO;
+    for event in mouse_motion.read() {
+        rotation += event.delta * ROTATION_SPEED * time.delta_secs();
+    }
+
+    if let Ok(mut transform) = query.get_single_mut() {
+        transform.rotate_y(-rotation.x);
+        transform.rotate_x(-rotation.y);
+    }
 }
 
 #[derive(Component)]
 struct PlayerPhysics {
     velocity: Vec3,
-    acceleration: Vec3
+}
+
+impl Default for PlayerPhysics {
+    fn default() -> Self {
+        Self {
+            velocity: Vec3::ZERO,
+        }
+    }
 }
 
 fn player_movement(
@@ -120,5 +151,4 @@ fn player_movement(
         controller.translation = Some(physics.velocity * time.delta_secs());
 
     }
-
 }
