@@ -28,40 +28,46 @@ fn setup_scene(mut commands: Commands) {
 
 fn setup_objects(mut commands: Commands) {
     commands
-        .spawn(RigidBody::Dynamic)
-        .insert(Collider::capsule(
-            Vec3::new(0.0, 0.0, 0.0).into(), // Start at feet
-            Vec3::new(0.0, 1.8, 0.0).into(), // End at head (1.8 units tall)
-            0.4,
-        ))
-        .insert(Player)
-        .insert(Transform::from_xyz(0.0, 1.0, 0.0))
-        .insert(Velocity::default())
-        .insert(GravityScale(1.0))
-        .insert(Damping {
-            linear_damping: 0.5,
-            angular_damping: 0.5,
-        })
-        .insert(LockedAxes::ROTATION_LOCKED_X | LockedAxes::ROTATION_LOCKED_Z);
+        .spawn((
+            RigidBody::KinematicPositionBased,
+            Collider::capsule(
+                Vec3::new(0.0, 0.0, 0.0).into(), // Start at feet
+                Vec3::new(0.0, 1.8, 0.0).into(), // End at head (1.8 units tall)
+                0.4,
+            ),
+            KinematicCharacterController::default(),
+            KinematicCharacterControllerOutput::default(),
+            PlayerPhysics {
+                velocity: Vec3::ZERO,
+                acceleration: Vec3::ZERO
+            },
+            Transform::from_xyz(0.0, 1.0, 0.0)));
 }
 
 #[derive(Component)]
-struct Player;
+struct PlayerPhysics {
+    velocity: Vec3,
+    acceleration: Vec3
+}
 
 fn player_movement(
-    mut query: Query<(&mut Velocity, &Transform), (With<RigidBody>, With<Player>)>,
+    mut query: Query<(&mut KinematicCharacterController, &mut PlayerPhysics, &KinematicCharacterControllerOutput)>,
     camera_query: Query<&Transform, With<Camera>>,
     input: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
 ) {
-    const WALK: f32 = 3.25;
-    const RUN: f32 = 5.0;
-    const JUMP_VEL: f32 = 3.25;
+    const WALK: f32 = 5.0;
+    const RUN: f32 = 8.0;
+    const FRICTION: f32 = 0.85;
+    const JUMP_FORCE: f32 = 8.0;
+    const GRAVITY: f32 = -9.81;
+    const FALL_MULTIPLIER: f32 = 2.25;
+    const JUMP_MULTIPLIER: f32 = 0.95;
 
     let Ok(cam) = camera_query.get_single() else { return };
-
-    if let Ok((mut vel, trans)) = query.get_single_mut() {
+    if let Ok((mut controller, mut physics, output)) = query.get_single_mut() {
+        // getting directions
         let mut direction = Vec3::ZERO;
-
         let forward = Vec3::new(cam.forward().x, 0.0, cam.forward().z).normalize();
         let right = Vec3::new(cam.right().x, 0.0, cam.right().z).normalize();
 
@@ -77,28 +83,42 @@ fn player_movement(
         if input.pressed(KeyCode::KeyA) {
             direction -= right;
         }
-        if input.pressed(KeyCode::Space) {
-            vel.linvel.y = JUMP_VEL;
-        }
 
+        // getting target speed
         let speed = if input.pressed(KeyCode::ShiftLeft) {
             RUN
         } else {
             WALK
         };
 
-        if direction != Vec3::ZERO {
-            direction = direction.normalize();
-            let target_velocity = direction * speed;
-
-            vel.linvel.x = target_velocity.x;
-            vel.linvel.z = target_velocity.z;
+        let mut desired_velocity = if direction != Vec3::ZERO {
+            direction.normalize() * speed
         } else {
-            // what we do when we stop
-            vel.linvel.x *= 0.95;
-            vel.linvel.z *= 0.95;
+            Vec3::ZERO
+        };
 
+        desired_velocity.y = physics.velocity.y;
+
+        if output.grounded && input.pressed(KeyCode::Space) {
+            physics.velocity.y = JUMP_FORCE;
         }
 
+        if !output.grounded {
+            let gravity_scale = if physics.velocity.y > 0.0 {
+                JUMP_MULTIPLIER
+            } else {
+                FALL_MULTIPLIER
+            };
+
+            physics.velocity.y += GRAVITY * gravity_scale * time.delta_secs();
+        }
+
+        // Smooth movement towards desired velocity
+        physics.velocity = physics.velocity.lerp(desired_velocity, 1.0 - FRICTION);
+
+        // Apply final movement through character controller
+        controller.translation = Some(physics.velocity * time.delta_secs());
+
     }
+
 }
