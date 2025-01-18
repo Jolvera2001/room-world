@@ -48,6 +48,19 @@ impl Default for CameraOrbit {
     }
 }
 
+#[derive(Component)]
+struct PlayerPhysics {
+    velocity: Vec3,
+}
+
+impl Default for PlayerPhysics {
+    fn default() -> Self {
+        Self {
+            velocity: Vec3::ZERO,
+        }
+    }
+}
+
 fn camera_control(
     mut mouse_motion: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut CameraOrbit)>,
@@ -81,19 +94,6 @@ fn camera_follow(
         (player_query.get_single(), camera_query.get_single_mut())
     {
         camera_transform.translation = player_transform.translation;
-    }
-}
-
-#[derive(Component)]
-struct PlayerPhysics {
-    velocity: Vec3,
-}
-
-impl Default for PlayerPhysics {
-    fn default() -> Self {
-        Self {
-            velocity: Vec3::ZERO,
-        }
     }
 }
 
