@@ -111,7 +111,7 @@ impl Default for PlayerPhysics {
 
 fn player_movement(
     mut query: Query<(&mut KinematicCharacterController, &mut PlayerPhysics, &KinematicCharacterControllerOutput)>,
-    camera_query: Query<&Transform, With<Camera3d>>,
+    camera_orbit_query: Query<&Transform, With<CameraOrbit>>,
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
@@ -123,12 +123,16 @@ fn player_movement(
     const FALL_MULTIPLIER: f32 = 2.25;
     const JUMP_MULTIPLIER: f32 = 0.95;
 
-    let Ok(cam) = camera_query.get_single() else { return };
+    let Ok(orbit_transform) = camera_orbit_query.get_single() else { return };
     if let Ok((mut controller, mut physics, output)) = query.get_single_mut() {
         // getting directions
         let mut direction = Vec3::ZERO;
-        let forward = Vec3::new(cam.forward().x, 0.0, cam.forward().z).normalize();
-        let right = Vec3::new(cam.right().x, 0.0, cam.right().z).normalize();
+
+        let forward = orbit_transform.forward();
+        let right = orbit_transform.right();
+
+        let forward = Vec3::new(forward.x, 0.0, forward.z).normalize();
+        let right = Vec3::new(right.x, 0.0, right.z).normalize();
 
         if input.pressed(KeyCode::KeyW) {
             direction += forward;
