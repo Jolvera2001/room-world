@@ -1,42 +1,36 @@
-use bevy::prelude::*;
 use bevy::input::mouse::MouseMotion;
+use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-mod player_plugin;
+pub struct PlayerPlugin;
 
-use player_plugin::PlayerPlugin;
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugins(RapierDebugRenderPlugin::default())
-        .add_plugins(PlayerPlugin)
-        .add_systems(Startup, setup_scene)
-        .run();
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, spawn_player)
+            .add_systems(Update, (player_movement, camera_control, camera_follow));
+    }
 }
 
-fn setup_scene(mut commands: Commands) {
-    // ground
+fn spawn_player(mut commands: Commands) {
+    commands.spawn((
+        RigidBody::KinematicPositionBased,
+        Collider::capsule(
+            Vec3::new(0.0, 0.0, 0.0).into(), // Start at feet
+            Vec3::new(0.0, 1.8, 0.0).into(), // End at head (1.8 units tall)
+            0.4,
+        ),
+        KinematicCharacterController::default(),
+        KinematicCharacterControllerOutput::default(),
+        PlayerPhysics::default(),
+        Transform::from_xyz(0.0, 1.0, 0.0),
+    ));
     commands
-        .spawn(Collider::cuboid(25.0, 0.1, 25.0))
-        .insert(Transform::from_xyz(0.0, -2.0, 0.0))
-        .insert(RigidBody::Fixed);
-}
-
-fn setup_objects(mut commands: Commands) {
-    commands
-        .spawn((
-            RigidBody::KinematicPositionBased,
-            Collider::capsule(
-                Vec3::new(0.0, 0.0, 0.0).into(), // Start at feet
-                Vec3::new(0.0, 1.8, 0.0).into(), // End at head (1.8 units tall)
-                0.4,
-            ),
-            KinematicCharacterController::default(),
-            KinematicCharacterControllerOutput::default(),
-            PlayerPhysics::default(),
-            Transform::from_xyz(0.0, 1.0, 0.0)));
+        .spawn((CameraOrbit::default(), Transform::default()))
+        .with_children(|parent| {
+            parent
+                .spawn(Camera3d { ..default() })
+                .insert(Transform::from_xyz(0.0, 2.0, 10.0));
+        });
 }
 
 #[derive(Component)]
@@ -49,7 +43,7 @@ impl Default for CameraOrbit {
     fn default() -> Self {
         Self {
             pitch: 0.0,
-            yaw: 0.0
+            yaw: 0.0,
         }
     }
 }
@@ -57,7 +51,7 @@ impl Default for CameraOrbit {
 fn camera_control(
     mut mouse_motion: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut CameraOrbit)>,
-    time: Res<Time>, 
+    time: Res<Time>,
 ) {
     const ROTATION_SPEED: f32 = 0.3;
     const MAX_PITCH: f32 = std::f32::consts::FRAC_PI_2 - 0.1;
@@ -74,8 +68,8 @@ fn camera_control(
         // (up/down)
         orbit.pitch = (orbit.pitch - rotation.y).clamp(-MAX_PITCH, MAX_PITCH);
 
-        transform.rotation = Quat::from_axis_angle(Vec3::Y, orbit.yaw)
-        * Quat::from_axis_angle(Vec3::X, orbit.pitch);
+        transform.rotation =
+            Quat::from_axis_angle(Vec3::Y, orbit.yaw) * Quat::from_axis_angle(Vec3::X, orbit.pitch);
     }
 }
 
@@ -83,7 +77,9 @@ fn camera_follow(
     player_query: Query<&Transform, (With<PlayerPhysics>, Without<CameraOrbit>)>,
     mut camera_query: Query<&mut Transform, With<CameraOrbit>>,
 ) {
-    if let(Ok(player_transform), Ok(mut camera_transform)) = (player_query.get_single(), camera_query.get_single_mut()) {
+    if let (Ok(player_transform), Ok(mut camera_transform)) =
+        (player_query.get_single(), camera_query.get_single_mut())
+    {
         camera_transform.translation = player_transform.translation;
     }
 }
@@ -102,7 +98,11 @@ impl Default for PlayerPhysics {
 }
 
 fn player_movement(
-    mut query: Query<(&mut KinematicCharacterController, &mut PlayerPhysics, &KinematicCharacterControllerOutput)>,
+    mut query: Query<(
+        &mut KinematicCharacterController,
+        &mut PlayerPhysics,
+        &KinematicCharacterControllerOutput,
+    )>,
     camera_orbit_query: Query<&Transform, With<CameraOrbit>>,
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
@@ -115,7 +115,9 @@ fn player_movement(
     const FALL_MULTIPLIER: f32 = 2.25;
     const JUMP_MULTIPLIER: f32 = 0.95;
 
-    let Ok(orbit_transform) = camera_orbit_query.get_single() else { return };
+    let Ok(orbit_transform) = camera_orbit_query.get_single() else {
+        return;
+    };
     if let Ok((mut controller, mut physics, output)) = query.get_single_mut() {
         // getting directions
         let mut direction = Vec3::ZERO;
@@ -173,6 +175,5 @@ fn player_movement(
 
         // Apply final movement through character controller
         controller.translation = Some(physics.velocity * time.delta_secs());
-
     }
 }
