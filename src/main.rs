@@ -6,6 +6,7 @@ mod player_plugin;
 mod gui_plugin;
 
 use player_plugin::PlayerPlugin;
+use gui_plugin::GuiPlugin;
 
 fn main() {
     App::new()
@@ -16,6 +17,7 @@ fn main() {
         .add_plugins(EguiPlugin)
         
         // personal plugins
+        .add_plugins(GuiPlugin)
         .add_plugins(PlayerPlugin)
         .add_systems(Startup, setup_scene)
         .run();

@@ -2,6 +2,8 @@ use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+use crate::gui_plugin::GameState;
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -106,7 +108,12 @@ fn player_movement(
     camera_orbit_query: Query<&Transform, With<CameraOrbit>>,
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
+    game_query: Query<&GameState>,
 ) {
+    if let Ok(game_state) = game_query.get_single() {
+        if game_state.paused { return; }
+    }
+
     const WALK: f32 = 5.0;
     const RUN: f32 = 8.0;
     const FRICTION: f32 = 0.85;
