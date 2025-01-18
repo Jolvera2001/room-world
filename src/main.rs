@@ -1,15 +1,21 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
+use bevy_egui::EguiPlugin;
 
 mod player_plugin;
+mod gui_plugin;
 
 use player_plugin::PlayerPlugin;
 
 fn main() {
     App::new()
+        // outside plugins
         .add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
+        .add_plugins(EguiPlugin)
+        
+        // personal plugins
         .add_plugins(PlayerPlugin)
         .add_systems(Startup, setup_scene)
         .run();
