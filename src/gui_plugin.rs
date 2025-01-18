@@ -6,6 +6,7 @@ pub struct GuiPlugin;
 impl Plugin for GuiPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GameEvent>()
+        .add_systems(Startup, setup_gui_plugin)
         .add_systems(Update, (handle_pause, handle_game_events));
     }
 }
@@ -18,6 +19,16 @@ enum GameEvent {
 #[derive(Component)]
 pub struct GameState {
     pub paused: bool
+}
+
+#[derive(Component)]
+pub struct GameStateMarker;
+
+fn setup_gui_plugin(mut commands: Commands) {
+    commands.spawn((
+        GameState { paused: false },
+        GameStateMarker,
+    ));
 }
 
 fn handle_pause(
@@ -36,7 +47,10 @@ fn handle_game_events(
     for event in event_reader.read() {
         if let Ok(mut game_state) = state_query.get_single_mut() {
             match event {
-                GameEvent::TogglePause => game_state.paused = !game_state.paused
+                GameEvent::TogglePause => {
+                    game_state.paused = !game_state.paused;
+                    println!("Game paused: {}", game_state.paused);
+                }     
             }
         }
     }

@@ -2,7 +2,7 @@ use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-use crate::gui_plugin::GameState;
+use crate::gui_plugin::{GameState, GameStateMarker};
 
 pub struct PlayerPlugin;
 
@@ -66,8 +66,13 @@ impl Default for PlayerPhysics {
 fn camera_control(
     mut mouse_motion: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut CameraOrbit)>,
+    game_query: Query<&GameState, With<GameStateMarker>>,
     time: Res<Time>,
 ) {
+    if let Ok(game_state) = game_query.get_single() {
+        if game_state.paused { return; }
+    }
+
     const ROTATION_SPEED: f32 = 0.3;
     const MAX_PITCH: f32 = std::f32::consts::FRAC_PI_2 - 0.1;
 
@@ -108,7 +113,7 @@ fn player_movement(
     camera_orbit_query: Query<&Transform, With<CameraOrbit>>,
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    game_query: Query<&GameState>,
+    game_query: Query<&GameState, With<GameStateMarker>>,
 ) {
     if let Ok(game_state) = game_query.get_single() {
         if game_state.paused { return; }
