@@ -9,7 +9,7 @@ fn main() {
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup_scene)
         .add_systems(Startup, setup_objects)
-        .add_systems(Update, (player_movement, camera_control))
+        .add_systems(Update, (player_movement, camera_control, camera_follow))
         .run();
 }
 
@@ -65,6 +65,15 @@ fn camera_control(
     if let Ok(mut transform) = query.get_single_mut() {
         transform.rotate_y(-rotation.x);
         transform.rotate_x(-rotation.y);
+    }
+}
+
+fn camera_follow(
+    player_query: Query<&Transform, (With<PlayerPhysics>, Without<CameraOrbit>)>,
+    mut camera_query: Query<&mut Transform, With<CameraOrbit>>,
+) {
+    if let(Ok(player_transform), Ok(mut camera_transform)) = (player_query.get_single(), camera_query.get_single_mut()) {
+        camera_transform.translation = player_transform.translation;
     }
 }
 
