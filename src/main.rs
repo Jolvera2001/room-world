@@ -8,7 +8,7 @@ mod mechanics;
 
 use player_plugin::PlayerPlugin;
 use gui_plugin::GuiPlugin;
-use mechanics::interact_mechanic::{InteractType, Interactable, InteractionPlugin};
+use mechanics::interact_mechanic::{DialogTrigger, InteractType, Interactable, InteractionPlugin};
 
 fn main() {
     App::new()
@@ -36,7 +36,8 @@ fn setup_scene(mut commands: Commands) {
 
     commands.spawn((
         Collider::ball(1.0),
-        Transform::from_xyz(1.0, 1.0, 1.0),
+        Transform::from_xyz(5.0, 0.5, 0.0),
         Interactable,
+        DialogTrigger,
     ));
 }
