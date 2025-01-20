@@ -4,6 +4,7 @@ use bevy_egui::EguiPlugin;
 
 mod player_plugin;
 mod gui_plugin;
+mod mechanics;
 
 use player_plugin::PlayerPlugin;
 use gui_plugin::GuiPlugin;
