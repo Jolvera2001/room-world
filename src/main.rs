@@ -8,10 +8,11 @@ mod mechanics;
 
 use player_plugin::PlayerPlugin;
 use gui_plugin::GuiPlugin;
-use mechanics::interact_mechanic::{Interactable, InteractionPlugin};
+use mechanics::interact_mechanic::{InteractType, Interactable, InteractionPlugin};
 
 fn main() {
     App::new()
+        .add_event::<InteractType>()
         // outside plugins
         .add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
