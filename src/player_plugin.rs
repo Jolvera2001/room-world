@@ -25,6 +25,7 @@ fn spawn_player(mut commands: Commands) {
         KinematicCharacterControllerOutput::default(),
         PlayerPhysics::default(),
         Transform::from_xyz(0.0, 1.0, 0.0),
+        Player,
     ));
     commands
         .spawn((CameraOrbit::default(), Transform::default()))
@@ -49,6 +50,10 @@ impl Default for CameraOrbit {
         }
     }
 }
+
+// as a marker
+#[derive(Component)]
+pub struct Player;
 
 #[derive(Component)]
 struct PlayerPhysics {
@@ -94,7 +99,7 @@ fn camera_control(
 }
 
 fn camera_follow(
-    player_query: Query<&Transform, (With<PlayerPhysics>, Without<CameraOrbit>)>,
+    player_query: Query<&Transform, (With<PlayerPhysics>, With<Player>, Without<CameraOrbit>)>,
     mut camera_query: Query<&mut Transform, With<CameraOrbit>>,
 ) {
     if let (Ok(player_transform), Ok(mut camera_transform)) =
@@ -109,7 +114,7 @@ fn player_movement(
         &mut KinematicCharacterController,
         &mut PlayerPhysics,
         &KinematicCharacterControllerOutput,
-    )>,
+    ), With<Player>>,
     camera_orbit_query: Query<&Transform, With<CameraOrbit>>,
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
