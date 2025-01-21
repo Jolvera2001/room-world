@@ -121,7 +121,7 @@ fn player_controls(
     game_query: Query<&GameState, With<GameStateMarker>>,
 ) {
     if let Ok(game_state) = game_query.get_single() {
-        if game_state.paused { return; }
+        if game_state.paused || game_state.in_dialog { return; }
     }
 
     const WALK: f32 = 5.0;
