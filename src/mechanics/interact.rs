@@ -7,10 +7,8 @@ pub struct InteractionPlugin;
 
 impl Plugin for InteractionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (
-            handle_interaction,
-            interaction_events
-        ));
+        app.add_event::<InteractType>()
+            .add_systems(Update, (handle_interaction, interaction_events));
     }
 }
 
@@ -49,11 +47,11 @@ fn handle_interaction(
 
     if let Ok(context) = rapier_context.get_single() {
         context.intersections_with_shape(
-            transform.translation, 
-            Quat::default(), 
-            &Collider::ball(INT_RADIUS), 
-            QueryFilter::default(), |
-            entity| {
+            transform.translation,
+            Quat::default(),
+            &Collider::ball(INT_RADIUS),
+            QueryFilter::default(),
+            |entity| {
                 // if the found entity isn't ourselves AND it is an entity marked as interactable
                 if entity != player_entity && interactable_query.contains(entity) {
                     if dialog_query.contains(entity) {
@@ -67,13 +65,12 @@ fn handle_interaction(
                     }
                 }
                 true
-        });
+            },
+        );
     }
 }
 
-fn interaction_events(
-    mut event_reader: EventReader<InteractType>,
-) {
+fn interaction_events(mut event_reader: EventReader<InteractType>) {
     for event in event_reader.read() {
         match event {
             InteractType::Dialog(_) => println!("Press E to talk"),

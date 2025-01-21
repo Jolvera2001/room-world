@@ -7,10 +7,9 @@ pub struct DialogPlugin;
 
 impl Plugin for DialogPlugin {
     fn build(&self, app: &mut App) {
-        app
-        .add_plugins(RonAssetPlugin::<DialogAsset>::new(&["dialog_test.ron"]))
-        .add_event::<DialogEvent>()
-        .add_systems(Update, fetch_dialog_data);
+        app.add_plugins(RonAssetPlugin::<DialogAsset>::new(&["dialog_test.ron"]))
+            .add_event::<DialogEvent>()
+            .add_systems(Update, fetch_dialog_data);
     }
 }
 
@@ -20,8 +19,8 @@ pub struct DialogAsset {
 }
 
 #[derive(Event)]
-pub enum DialogEvent{
-    DialogData(DialogAsset)
+pub enum DialogEvent {
+    DialogData(DialogAsset),
 }
 
 // marker
@@ -30,7 +29,7 @@ pub struct DialogEntity;
 
 #[derive(Component)]
 pub struct DialogData {
-    dialog_file: Handle<DialogAsset>
+    dialog_file: Handle<DialogAsset>,
 }
 
 fn fetch_dialog_data(
