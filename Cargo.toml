@@ -5,5 +5,8 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.15.1"
+bevy_common_assets = { version = "0.12.0", features = ["ron"] }
 bevy_egui = "0.32.0"
 bevy_rapier3d = { version = "0.28.0", features = ["debug-render", "simd-stable", "debug-render-3d"] }
+ron = "0.8.1"
+serde = "1.0.217"
