@@ -9,7 +9,7 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_player)
-            .add_systems(Update, (player_movement, camera_control, camera_follow));
+            .add_systems(Update, (player_controls, camera_control, camera_follow));
     }
 }
 
@@ -109,7 +109,7 @@ fn camera_follow(
     }
 }
 
-fn player_movement(
+fn player_controls(
     mut query: Query<(
         &mut KinematicCharacterController,
         &mut PlayerPhysics,

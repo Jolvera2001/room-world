@@ -8,7 +8,7 @@ mod mechanics;
 
 use player_plugin::PlayerPlugin;
 use gui_plugin::GuiPlugin;
-use mechanics::interact::{DialogTrigger, Interactable, InteractionPlugin};
+use mechanics::{dialog::{DialogData, DialogEntity, DialogPlugin}, interact::{DialogTrigger, Interactable, InteractionPlugin}};
 
 fn main() {
     App::new()
@@ -22,11 +22,12 @@ fn main() {
         .add_plugins(GuiPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(InteractionPlugin)
+        .add_plugins(DialogPlugin)
         .add_systems(Startup, setup_scene)
         .run();
 }
 
-fn setup_scene(mut commands: Commands) {
+fn setup_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
     // ground
     commands
         .spawn(Collider::cuboid(25.0, 0.1, 25.0))
@@ -38,5 +39,9 @@ fn setup_scene(mut commands: Commands) {
         Transform::from_xyz(5.0, 0.5, 0.0),
         Interactable,
         DialogTrigger,
+        DialogEntity,
+        DialogData {
+            dialog_file: asset_server.load("dialog_test.ron"),
+        }
     ));
 }

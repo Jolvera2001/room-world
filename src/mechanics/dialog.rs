@@ -7,7 +7,8 @@ pub struct DialogPlugin;
 
 impl Plugin for DialogPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(RonAssetPlugin::<DialogAsset>::new(&["dialog_test.ron"]))
+        app.init_asset::<DialogAsset>()
+            .add_plugins(RonAssetPlugin::<DialogAsset>::new(&["dialog_test.ron"]))
             .add_event::<DialogEvent>()
             .add_systems(Update, fetch_dialog_data);
     }
@@ -29,7 +30,7 @@ pub struct DialogEntity;
 
 #[derive(Component)]
 pub struct DialogData {
-    dialog_file: Handle<DialogAsset>,
+    pub dialog_file: Handle<DialogAsset>,
 }
 
 fn fetch_dialog_data(
