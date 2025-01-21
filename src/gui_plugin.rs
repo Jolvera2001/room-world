@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::input::mouse::MouseButton;
 use bevy::app::AppExit;
 use bevy_egui::{egui::{self, Color32, RichText}, EguiContexts};
 
@@ -100,6 +101,7 @@ fn render_dialog_box(
     mut dialog_event: EventReader<DialogEvent>,
     mut game_state: Query<&mut GameState>,
     input: Res<ButtonInput<KeyCode>>,
+    mouse_input: Res<ButtonInput<MouseButton>>,
 ) {
     if let Ok(mut state) = game_state.get_single_mut() {
         for event in dialog_event.read() {
@@ -127,13 +129,13 @@ fn render_dialog_box(
                             );
         
                             ui.add_space(10.0);
-                            ui.label(RichText::new("[Space] Continue")
+                            ui.label(RichText::new("[Space or Mouse1] Continue")
                                     .size(12.0)
                                     .color(Color32::LIGHT_GRAY));
                         });
                     });
     
-                if input.just_pressed(KeyCode::Space) {
+                if input.just_pressed(KeyCode::Space) || mouse_input.just_pressed(MouseButton::Left) {
                     if state.current_dialog_line < dialog.lines.len() - 1 {
                         state.current_dialog_line += 1;
                     } else {
