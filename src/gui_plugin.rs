@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy::app::AppExit;
 use bevy_egui::{egui::{self, Color32, RichText}, EguiContexts};
 
-use crate::mechanics::dialog::DialogEvent;
+use crate::mechanics::dialog::{DialogAsset, DialogEvent};
 
 pub struct GuiPlugin;
 
@@ -29,6 +29,7 @@ pub struct GameState {
     pub paused: bool,
     pub in_dialog: bool,
     pub current_dialog_line: usize,
+    pub current_dialog: Option<DialogAsset>
 }
 
 #[derive(Component)]
@@ -40,6 +41,7 @@ fn setup_gui_plugin(mut commands: Commands) {
             paused: false,
             in_dialog: false,
             current_dialog_line: 0,
+            current_dialog: None,
         },
         GameStateMarker,
     ));
@@ -104,34 +106,42 @@ fn render_dialog_box(
             if let DialogEvent::DialogData(dialog_asset) = event {
                 state.in_dialog = true;
                 state.current_dialog_line = 0;
+                state.current_dialog = Some(dialog_asset.clone());
             }
         }
 
         if state.in_dialog {
-            egui::Window::new("Dialog")
-                .anchor(egui::Align2::CENTER_BOTTOM, [0.0, -30.0])
-                .resizable(false)
-                .collapsible(false)
-                .fixed_size([600.0, 150.0])
-                .show(contexts.ctx_mut(), |ui| {
-                    ui.vertical_centered(|ui| {
-                        ui.label("Character Name");
-                        ui.add_space(10.0);
-                        ui.label(RichText::new("Dialog text here")
-                            .size(16.0)
-                            .family(egui::FontFamily::Proportional)
-                        );
-    
-                        ui.add_space(10.0);
-                        ui.label(RichText::new("[Space] Continue")
-                                .size(12.0)
-                                .color(Color32::LIGHT_GRAY));
+            if let Some(dialog) = &state.current_dialog {
+                egui::Window::new("Dialog")
+                    .anchor(egui::Align2::CENTER_BOTTOM, [0.0, -30.0])
+                    .resizable(false)
+                    .collapsible(false)
+                    .fixed_size([600.0, 150.0])
+                    .show(contexts.ctx_mut(), |ui| {
+                        ui.vertical_centered(|ui| {
+                            ui.label("Character Name");
+                            ui.add_space(10.0);
+                            ui.label(RichText::new(&dialog.lines[state.current_dialog_line])
+                                .size(16.0)
+                                .family(egui::FontFamily::Proportional)
+                            );
+        
+                            ui.add_space(10.0);
+                            ui.label(RichText::new("[Space] Continue")
+                                    .size(12.0)
+                                    .color(Color32::LIGHT_GRAY));
+                        });
                     });
-                });
-
-            if input.just_pressed(KeyCode::Space) {
-                state.current_dialog_line += 1;
-                // add logic for reaching the end of dialog
+    
+                if input.just_pressed(KeyCode::Space) {
+                    if state.current_dialog_line < dialog.lines.len() - 1 {
+                        state.current_dialog_line += 1;
+                    } else {
+                        state.in_dialog = false;
+                        state.current_dialog = None;
+                        state.current_dialog_line = 0;
+                    }
+                }
             }
         }
     }

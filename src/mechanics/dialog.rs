@@ -15,7 +15,7 @@ impl Plugin for DialogPlugin {
 
 #[derive(Asset, TypePath, Debug, Deserialize, Clone)]
 pub struct DialogAsset {
-    lines: Vec<String>,
+    pub lines: Vec<String>,
 }
 
 #[derive(Event)]
