@@ -22,8 +22,6 @@ impl Plugin for GuiPlugin {
 #[derive(Event)]
 enum GameEvent {
     TogglePause,
-    StartDialog,
-    EndDialog,
 }
 
 #[derive(Component)]
@@ -67,12 +65,6 @@ fn handle_game_events(
                     game_state.paused = !game_state.paused;
                     println!("Game paused: {}", game_state.paused);
                 },
-                GameEvent::StartDialog => {
-                    game_state.in_dialog = !game_state.in_dialog;
-                },
-                GameEvent::EndDialog => {
-                    game_state.in_dialog = !game_state.in_dialog;
-                }
             }
         }
     }
@@ -103,7 +95,6 @@ fn render_pause_menu(
 
 fn render_dialog_box(
     mut contexts: EguiContexts,
-    mut event_writer: EventWriter<GameEvent>,
     mut dialog_event: EventReader<DialogEvent>,
     mut game_state: Query<&mut GameState>,
     input: Res<ButtonInput<KeyCode>>,
