@@ -1,1 +1,2 @@
-pub mod interact_mechanic;
+pub mod interact;
+pub mod dialog;

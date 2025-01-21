@@ -7,7 +7,10 @@ pub struct InteractionPlugin;
 
 impl Plugin for InteractionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (handle_interaction, interaction_events));
+        app.add_systems(Update, (
+            handle_interaction,
+            interaction_events
+        ));
     }
 }
 

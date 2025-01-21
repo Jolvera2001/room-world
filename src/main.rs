@@ -8,7 +8,7 @@ mod mechanics;
 
 use player_plugin::PlayerPlugin;
 use gui_plugin::GuiPlugin;
-use mechanics::interact_mechanic::{DialogTrigger, InteractType, Interactable, InteractionPlugin};
+use mechanics::interact::{DialogTrigger, InteractType, Interactable, InteractionPlugin};
 
 fn main() {
     App::new()
