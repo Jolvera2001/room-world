@@ -223,6 +223,7 @@ fn player_controls(
 
 fn handle_interaction(
     query: Query<(Entity, &Transform), With<Player>>,
+    check_query: Query<(&KinematicCharacterControllerOutput, &GameState), (With<Player>, With<GameStateMarker>)>,
     interactable_query: Query<Entity, With<Interactable>>,
     rapier_context: Query<&RapierContext>, // REMEMBER ITS A COMPONENT, NOT A RESOURCE
     dialog_query: Query<Entity, With<DialogTrigger>>,
@@ -231,6 +232,10 @@ fn handle_interaction(
     input: Res<ButtonInput<KeyCode>>,
     mut event_writer: EventWriter<InteractType>,
 ) {
+    if let Ok((output, state)) = check_query.get_single() {
+        if !output.grounded || state.paused || state.in_dialog { return; }
+    }
+
     let (player_entity, transform) = query.single();
     const INT_RADIUS: f32 = 4.5;
 
