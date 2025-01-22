@@ -4,10 +4,12 @@ use bevy_egui::EguiPlugin;
 
 mod player_plugin;
 mod gui_plugin;
+mod debug_plugin;
 mod mechanics;
 
-use player_plugin::{DialogTrigger, Interactable, PlayerPlugin};
 use gui_plugin::GuiPlugin;
+use debug_plugin::DebugPlugin;
+use player_plugin::{DialogTrigger, Interactable, PlayerPlugin};
 use mechanics::dialog::{DialogData, DialogEntity, DialogPlugin};
 
 fn main() {
@@ -22,6 +24,7 @@ fn main() {
         .add_plugins(GuiPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(DialogPlugin)
+        .add_plugins(DebugPlugin)
         .add_systems(Startup, setup_scene)
         .run();
 }
