@@ -30,20 +30,20 @@ fn player_debug(
                     ui.vertical_centered(|ui| {
                         ui.heading("Game State");
                         ui.add_space(1.25);
-                        ui.label(state.paused.to_string());
-                        ui.label(state.in_dialog.to_string());
+                        ui.label(format!("Paused: {}", state.paused.to_string()));
+                        ui.label(format!("In Dialog state: {}", state.in_dialog.to_string()));
                         ui.label(if let Some(dialog) = &state.current_dialog {
-                            format!("Current Dialog {}", dialog.lines.len())
+                            format!("Current Dialog lines: {}", dialog.lines.len())
                         } else {
                             "No Active Dialog".to_string()
                         });
-                        ui.label(state.current_dialog_line.to_string());
+                        ui.label(format!("Current Line: {}", (state.current_dialog_line + 1).to_string()));
 
                         ui.add_space(5.0);
 
                         ui.heading("Player context");
                         ui.add_space(1.25);
-                        ui.label(player_context.grounded.to_string());
+                        ui.label(format!("Grounded: {}", player_context.grounded.to_string()));
                     })
                 });
         }
