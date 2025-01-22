@@ -2,7 +2,8 @@ use bevy::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 use serde::Deserialize;
 
-use super::interact::InteractType;
+use crate::player_plugin::InteractType;
+
 pub struct DialogPlugin;
 
 impl Plugin for DialogPlugin {

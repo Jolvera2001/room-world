@@ -6,9 +6,9 @@ mod player_plugin;
 mod gui_plugin;
 mod mechanics;
 
-use player_plugin::PlayerPlugin;
+use player_plugin::{DialogTrigger, Interactable, PlayerPlugin};
 use gui_plugin::GuiPlugin;
-use mechanics::{dialog::{DialogData, DialogEntity, DialogPlugin}, interact::{DialogTrigger, Interactable, InteractionPlugin}};
+use mechanics::dialog::{DialogData, DialogEntity, DialogPlugin};
 
 fn main() {
     App::new()
@@ -21,7 +21,6 @@ fn main() {
         // personal plugins
         .add_plugins(GuiPlugin)
         .add_plugins(PlayerPlugin)
-        .add_plugins(InteractionPlugin)
         .add_plugins(DialogPlugin)
         .add_systems(Startup, setup_scene)
         .run();
