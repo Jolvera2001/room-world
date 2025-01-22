@@ -27,7 +27,10 @@ fn spawn_player(mut commands: Commands) {
             Vec3::new(0.0, 1.8, 0.0).into(), // End at head (1.8 units tall)
             0.4,
         ),
-        KinematicCharacterController::default(),
+        KinematicCharacterController {
+            offset: CharacterLength::Absolute(0.01),
+            ..default()
+        },
         KinematicCharacterControllerOutput::default(),
         PlayerPhysics::default(),
         Transform::from_xyz(0.0, 1.0, 0.0),
