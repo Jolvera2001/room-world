@@ -28,6 +28,12 @@ fn spawn_player(mut commands: Commands) {
             0.4,
         ),
         KinematicCharacterController {
+            max_slope_climb_angle: 0.7,
+            autostep: Some(CharacterAutostep {
+                max_height: CharacterLength::Absolute(0.3),
+                min_width: CharacterLength::Absolute(0.2),
+                include_dynamic_bodies: false,
+            }),  // Add this
             offset: CharacterLength::Absolute(0.01),
             ..default()
         },
@@ -155,7 +161,7 @@ fn player_controls(
 
     const WALK: f32 = 5.0;
     const RUN: f32 = 8.0;
-    const FRICTION: f32 = 0.85;
+    const FRICTION: f32 = 0.875;
     const JUMP_FORCE: f32 = 8.0;
     const GRAVITY: f32 = -9.81;
     const FALL_MULTIPLIER: f32 = 2.25;
@@ -207,17 +213,25 @@ fn player_controls(
         }
 
         if !output.grounded {
-            let gravity_scale = if physics.velocity.y > 0.0 {
+            let mut gravity_scale = if physics.velocity.y > 0.0 {
                 JUMP_MULTIPLIER
             } else {
                 FALL_MULTIPLIER
             };
+
+            if output.is_sliding_down_slope {
+                gravity_scale *= 0.475;
+            }
 
             physics.velocity.y += GRAVITY * gravity_scale * time.delta_secs();
         }
 
         // Smooth movement towards desired velocity
         physics.velocity = physics.velocity.lerp(desired_velocity, 1.0 - FRICTION);
+
+        if physics.velocity.length() < 0.01 {
+            physics.velocity = Vec3::ZERO;
+        }
 
         // Apply final movement through character controller
         controller.translation = Some(physics.velocity * time.delta_secs());

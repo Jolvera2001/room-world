@@ -44,6 +44,7 @@ fn player_debug(
                         ui.heading("Player context");
                         ui.add_space(1.25);
                         ui.label(format!("Grounded: {}", player_context.grounded.to_string()));
+                        ui.label(format!("Sliding on slope: {}", player_context.is_sliding_down_slope.to_string()));
                     })
                 });
         }
