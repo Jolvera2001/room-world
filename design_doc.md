@@ -31,10 +31,6 @@ flowchart TD
 
 subgraph Interaction Flow
     P[Player]
-    %% Need to rewrite code on keeping interaction control only to player
-    %% Should not be controlled by other systems to keep interactions contained
-    %% In One place
-    Int[Interaction Plugin]
     DP[Dialog Plugin]
     GUI[GUI Plugin]
     subgraph Events
@@ -45,8 +41,7 @@ subgraph Interaction Flow
     end
 end
 
-P --> |Interacts| Int 
-Int --> |Emits| IE
+P --> |Keypress Emits| IE 
 
 IE --> DE
 IE --> DoE
