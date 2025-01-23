@@ -91,8 +91,8 @@ pub enum InteractType {
 }
 
 #[derive(Component)]
-struct PlayerPhysics {
-    velocity: Vec3,
+pub struct PlayerPhysics {
+    pub velocity: Vec3,
 }
 
 impl Default for PlayerPhysics {
