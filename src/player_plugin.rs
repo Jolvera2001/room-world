@@ -166,11 +166,17 @@ fn player_controls(
     const GRAVITY: f32 = -9.81;
     const FALL_MULTIPLIER: f32 = 2.25;
     const JUMP_MULTIPLIER: f32 = 0.95;
+    const VELOCITY_THRESHOLD: f32 = 0.01;
+    const MOVEMENT_THRESHOLD: f32 = 0.0001;
 
     let Ok(orbit_transform) = camera_orbit_query.get_single() else {
         return;
     };
     if let Ok((mut controller, mut physics, output)) = query.get_single_mut() {
+        if output.grounded {
+            physics.velocity.y = 0.0;
+        }
+        
         // getting directions
         let mut direction = Vec3::ZERO;
 
@@ -229,12 +235,23 @@ fn player_controls(
         // Smooth movement towards desired velocity
         physics.velocity = physics.velocity.lerp(desired_velocity, 1.0 - FRICTION);
 
-        if physics.velocity.length() < 0.01 {
+        if physics.velocity.length_squared() < VELOCITY_THRESHOLD * VELOCITY_THRESHOLD {
             physics.velocity = Vec3::ZERO;
         }
 
+        let movement = physics.velocity * time.delta_secs();
+        let filtered_movement = Vec3::new(
+            if movement.x.abs() < MOVEMENT_THRESHOLD {0.0} else { movement.x },
+            if movement.y.abs() < MOVEMENT_THRESHOLD {0.0} else { movement.y },
+            if movement.z.abs() < MOVEMENT_THRESHOLD {0.0} else { movement.z },
+        );
+
         // Apply final movement through character controller
-        controller.translation = Some(physics.velocity * time.delta_secs());
+        if filtered_movement != Vec3::ZERO {
+            controller.translation = Some(filtered_movement);
+        } else {
+            controller.translation = Some(Vec3::ZERO);
+        }
     }
 }
 
