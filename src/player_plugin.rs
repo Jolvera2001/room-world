@@ -34,7 +34,8 @@ fn spawn_player(mut commands: Commands) {
                 min_width: CharacterLength::Absolute(0.2),
                 include_dynamic_bodies: false,
             }),  // Add this
-            offset: CharacterLength::Absolute(0.01),
+            offset: CharacterLength::Relative(0.02),
+            snap_to_ground: Some(CharacterLength::Relative(0.1)),
             ..default()
         },
         KinematicCharacterControllerOutput::default(),
@@ -93,12 +94,14 @@ pub enum InteractType {
 #[derive(Component)]
 pub struct PlayerPhysics {
     pub velocity: Vec3,
+    pub grounded_timer: f32,
 }
 
 impl Default for PlayerPhysics {
     fn default() -> Self {
         Self {
             velocity: Vec3::ZERO,
+            grounded_timer: 0.0,
         }
     }
 }
@@ -168,14 +171,20 @@ fn player_controls(
     const JUMP_MULTIPLIER: f32 = 0.95;
     const VELOCITY_THRESHOLD: f32 = 0.01;
     const MOVEMENT_THRESHOLD: f32 = 0.0001;
+    const GROUNDED_THRESHOLD: f32 = 0.2;
 
     let Ok(orbit_transform) = camera_orbit_query.get_single() else {
         return;
     };
     if let Ok((mut controller, mut physics, output)) = query.get_single_mut() {
         if output.grounded {
-            physics.velocity.y = 0.0;
+            physics.grounded_timer = (physics.grounded_timer + time.delta_secs()).min(GROUNDED_THRESHOLD);
+        } else {
+            physics.grounded_timer = (physics.grounded_timer - time.delta_secs()).max(-GROUNDED_THRESHOLD);
         }
+
+        // Get smoothed ground state
+        let is_grounded = physics.grounded_timer > 0.0;
         
         // getting directions
         let mut direction = Vec3::ZERO;
@@ -214,11 +223,11 @@ fn player_controls(
 
         desired_velocity.y = physics.velocity.y;
 
-        if output.grounded && input.pressed(KeyCode::Space) {
+        if is_grounded && input.pressed(KeyCode::Space) {
             physics.velocity.y = JUMP_FORCE;
         }
 
-        if !output.grounded {
+        if !is_grounded || physics.velocity.y > 0.0 {
             let mut gravity_scale = if physics.velocity.y > 0.0 {
                 JUMP_MULTIPLIER
             } else {
@@ -230,6 +239,8 @@ fn player_controls(
             }
 
             physics.velocity.y += GRAVITY * gravity_scale * time.delta_secs();
+        } else if is_grounded {
+            physics.velocity.y = 0.0;
         }
 
         // Smooth movement towards desired velocity
